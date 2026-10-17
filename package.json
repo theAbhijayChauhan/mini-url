@@ -1,0 +1,13 @@
+{
+  "name": "mini-url",
+  "version": "1.0.0",
+  "description": "High-performance, zero-cost URL shortener & analytics engine powered by Cloudflare Workers, Hono, Supabase, and React",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  },
+  "keywords": ["url-shortener", "cloudflare-workers", "hono", "supabase", "react", "vite", "system-design"],
+  "author": "",
+  "license": "MIT"
+}

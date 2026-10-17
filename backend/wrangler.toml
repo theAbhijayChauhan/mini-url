@@ -1,0 +1,14 @@
+name = "mini-url-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables (Sensitive keys like SUPABASE_SERVICE_ROLE_KEY should be set via `wrangler secret put`)
+[vars]
+SUPABASE_URL = "https://swxtxehevilajjjjwpwh.supabase.co"
+FRONTEND_URL = "http://localhost:5173"
+
+# Optional Cloudflare KV Cache for Sub-millisecond URL Redirects (Uncomment after running `wrangler kv:namespace create URL_CACHE`)
+# [[kv_namespaces]]
+# binding = "URL_CACHE"
+# id = "your-kv-namespace-id"

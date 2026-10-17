@@ -1,0 +1,17 @@
+name: Keep Database & Worker Alive
+
+on:
+  schedule:
+    # Runs every 5 days at midnight UTC
+    - cron: '0 0 */5 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Mini URL Backend
+        run: |
+          API_URL="${{ secrets.LIVE_BACKEND_URL || 'https://swxtxehevilajjjjwpwh.supabase.co/rest/v1/' }}"
+          echo "Sending keepalive ping to $API_URL"
+          curl -s -f -m 10 "$API_URL" || echo "Ping completed."

@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-forest-950 text-emerald-50 antialiased overflow-x-hidden selection:bg-palette-emerald selection:text-forest-950;
+  }
+}
+
+/* Custom organic tactile glow */
+.glow-organic {
+  position: relative;
+}
+
+.glow-organic::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, #42D674, #80EF80, #E3F0A3);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.35;
+  filter: blur(14px);
+}
+
+/* Liquid water flow animation over letters */
+@keyframes waterFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.flowing-water-text {
+  background: linear-gradient(
+    90deg,
+    #42D674 0%,
+    #80EF80 20%,
+    #E3F0A3 40%,
+    #BADBA2 60%,
+    #80EF80 80%,
+    #42D674 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: waterFlow 5s ease-in-out infinite;
+  display: inline;
+}
+
+/* Tactile hairline border */
+.border-tactile {
+  border: 1px solid rgba(186, 219, 162, 0.16);
+}
+
+.border-tactile-focus:focus-within {
+  border-color: #42D674;
+  box-shadow: 0 0 0 1px rgba(66, 214, 116, 0.3);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060a07;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #162419;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2b4631;
+}

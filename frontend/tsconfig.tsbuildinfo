@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/analyticsmodal.tsx","./src/components/authmodal.tsx","./src/components/navbar.tsx","./src/components/qrmodal.tsx","./src/components/shortencard.tsx","./src/components/urlcard.tsx","./src/lib/api.ts","./src/lib/supabase.ts","./src/lib/utils.ts","./src/types/index.ts"],"version":"5.9.3"}

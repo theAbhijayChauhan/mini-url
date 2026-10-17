@@ -1,6 +1,7 @@
 import { ShortenFormValues, UrlItem, AnalyticsData } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+export const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
 interface ShortenResponse {
   success: boolean;
@@ -11,6 +12,31 @@ interface ShortenResponse {
   createdAt: string;
   expiresAt: string | null;
   error?: string;
+}
+
+async function parseResponse<T>(response: Response, fallbackError: string): Promise<T> {
+  const text = await response.text();
+  let data: any = null;
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(
+          `API endpoint not found (404). Check that your VITE_API_URL (${API_BASE_URL}) points to your Cloudflare Worker and not the Pages frontend.`
+        );
+      }
+      throw new Error(`Server returned status ${response.status}: ${text.slice(0, 120) || 'Unknown response'}`);
+    }
+    throw new Error('Received unexpected non-JSON response from server.');
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || fallbackError);
+  }
+
+  return data as T;
 }
 
 export async function shortenUrl(
@@ -31,13 +57,7 @@ export async function shortenUrl(
     body: JSON.stringify(values),
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to shorten URL');
-  }
-
-  return data;
+  return parseResponse<ShortenResponse>(response, 'Failed to shorten URL');
 }
 
 export async function fetchUserUrls(authToken: string): Promise<UrlItem[]> {
@@ -47,10 +67,10 @@ export async function fetchUserUrls(authToken: string): Promise<UrlItem[]> {
     },
   });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to fetch your links');
-  }
+  const data = await parseResponse<{ success: boolean; urls: UrlItem[] }>(
+    response,
+    'Failed to fetch your links'
+  );
 
   return data.urls || [];
 }
@@ -64,18 +84,25 @@ export async function deleteUrl(shortCode: string, authToken: string): Promise<v
   });
 
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.error || 'Failed to delete link');
+    const text = await response.text().catch(() => '');
+    let errMsg = 'Failed to delete link';
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.error) errMsg = parsed.error;
+    } catch {
+      if (text) errMsg = `Server returned ${response.status}: ${text}`;
+    }
+    throw new Error(errMsg);
   }
 }
 
 export async function fetchAnalytics(shortCode: string): Promise<AnalyticsData> {
   const response = await fetch(`${API_BASE_URL}/api/analytics/${shortCode}`);
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to fetch analytics');
-  }
+  const data = await parseResponse<{ success: boolean; analytics: AnalyticsData }>(
+    response,
+    'Failed to fetch analytics'
+  );
 
   return data.analytics;
 }
+

@@ -497,12 +497,12 @@ export const App: React.FC = () => {
           <p className="font-medium text-palette-cream">
             Mini URL • Created by{' '}
             <a
-              href="https://github.com/theAbhijay"
+              href="https://github.com/theAbhijayChauhan"
               target="_blank"
               rel="noopener noreferrer"
               className="text-palette-mint hover:underline font-bold"
             >
-              Abhijay (@theAbhijay)
+              Abhijay (@theAbhijayChauhan)
             </a>
           </p>
           <p className="text-[11px] text-palette-sage/60">

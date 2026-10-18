@@ -35,7 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onOpenAuth, onSignOut }) =
         {/* Right Actions */}
         <div className="flex items-center space-x-3">
           <a
-            href="https://github.com/Chauhan"
+            href="https://github.com/theAbhijayChauhan"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-palette-cream/90 hover:text-white bg-forest-900 hover:bg-forest-800 border border-palette-sage/20 rounded-lg transition-colors"

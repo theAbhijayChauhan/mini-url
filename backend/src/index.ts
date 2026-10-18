@@ -181,7 +181,8 @@ app.post('/api/shorten', async (c) => {
       );
     }
 
-    const shortUrl = `${new URL(c.req.url).origin}/${finalSlug}`;
+    const frontendBase = c.req.header('origin') || c.env.FRONTEND_URL || new URL(c.req.url).origin;
+    const shortUrl = `${frontendBase.replace(/\/+$/, '')}/${finalSlug}`;
 
     return c.json(
       {
@@ -222,10 +223,10 @@ app.get('/api/urls', async (c) => {
       return c.json({ error: 'Failed to fetch user URLs.' }, 500);
     }
 
-    const origin = new URL(c.req.url).origin;
+    const frontendBase = c.req.header('origin') || c.env.FRONTEND_URL || new URL(c.req.url).origin;
     const formatted = (data as UrlRecord[]).map((u) => ({
       ...u,
-      shortUrl: `${origin}/${u.short_code}`,
+      shortUrl: `${frontendBase.replace(/\/+$/, '')}/${u.short_code}`,
     }));
 
     return c.json({ success: true, urls: formatted });

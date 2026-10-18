@@ -26,11 +26,25 @@ import { QrModal } from './components/QrModal';
 import { AnalyticsModal } from './components/AnalyticsModal';
 import { AuthModal } from './components/AuthModal';
 import { UrlItem, ShortenFormValues } from './types';
-import { shortenUrl, fetchUserUrls, deleteUrl } from './lib/api';
+import { shortenUrl, fetchUserUrls, deleteUrl, API_BASE_URL } from './lib/api';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { copyToClipboard } from './lib/utils';
 
 export const App: React.FC = () => {
+  // 0. Detect if visitor landed on a short-link path (e.g., https://mini-url.pages.dev/OXr1QO)
+  const pathname = typeof window !== 'undefined' ? window.location.pathname.replace(/^\/+/, '') : '';
+  const isShortCodePath =
+    pathname.length > 0 &&
+    !pathname.includes('.') &&
+    !['api', 'auth', 'login', 'signup', 'dashboard'].includes(pathname.toLowerCase());
+
+  useEffect(() => {
+    if (isShortCodePath) {
+      // Forward directly to backend redirect engine
+      window.location.replace(`${API_BASE_URL}/${pathname}`);
+    }
+  }, [isShortCodePath, pathname]);
+
   const [user, setUser] = useState<User | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [links, setLinks] = useState<UrlItem[]>([]);
@@ -75,14 +89,25 @@ export const App: React.FC = () => {
     if (user && authToken) {
       setIsLoadingLinks(true);
       fetchUserUrls(authToken)
-        .then((userLinks) => setLinks(userLinks))
+        .then((userLinks) => {
+          const normalized = userLinks.map((item) => ({
+            ...item,
+            shortUrl: `${window.location.origin}/${item.short_code}`,
+          }));
+          setLinks(normalized);
+        })
         .catch((err) => console.error('Failed to load user links:', err))
         .finally(() => setIsLoadingLinks(false));
     } else {
       try {
         const saved = localStorage.getItem('mini_url_guest_links');
         if (saved) {
-          setLinks(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          const normalized = (parsed || []).map((item: UrlItem) => ({
+            ...item,
+            shortUrl: `${window.location.origin}/${item.short_code}`,
+          }));
+          setLinks(normalized);
         }
       } catch {}
     }
@@ -92,10 +117,13 @@ export const App: React.FC = () => {
   const handleShorten = async (values: ShortenFormValues): Promise<UrlItem> => {
     const res = await shortenUrl(values, authToken);
 
+    // Always generate the clean, ultra-short link using the frontend domain
+    const cleanShortUrl = `${window.location.origin}/${res.shortCode}`;
+
     const newItem: UrlItem = {
       id: Date.now(),
       short_code: res.shortCode,
-      shortUrl: res.shortUrl,
+      shortUrl: cleanShortUrl,
       original_url: res.originalUrl,
       title: res.title,
       clicks_count: 0,
@@ -138,7 +166,7 @@ export const App: React.FC = () => {
   };
 
   const handleCopyCurl = async () => {
-    const curlCommand = `curl -X POST http://localhost:8787/api/shorten \\
+    const curlCommand = `curl -X POST ${API_BASE_URL}/api/shorten \\
   -H "Content-Type: application/json" \\
   -d '{"url": "https://example.com/long-page", "expiresInDays": 5}'`;
     const success = await copyToClipboard(curlCommand);
@@ -147,6 +175,22 @@ export const App: React.FC = () => {
       setTimeout(() => setCopiedCurl(false), 2000);
     }
   };
+
+  // Immediate full-screen redirect view if visitor is clicking a short code
+  if (isShortCodePath) {
+    return (
+      <div className="min-h-screen bg-[#060a07] text-[#BADBA2] flex flex-col items-center justify-center p-6">
+        <div className="flex flex-col items-center space-y-4 max-w-sm text-center">
+          <div className="h-10 w-10 border-3 border-palette-emerald/30 border-t-palette-emerald rounded-full animate-spin" />
+          <h2 className="text-lg font-bold text-white">Redirecting you...</h2>
+          <p className="text-xs text-palette-sage/80 font-mono">
+            Forwarding via <span className="text-palette-mint">/{pathname}</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
 
   const totalUserClicks = links.reduce((acc, curr) => acc + (curr.clicks_count || 0), 0);
 
@@ -363,7 +407,7 @@ export const App: React.FC = () => {
 
           <div className="p-4 sm:p-5 rounded-2xl bg-forest-900 border border-palette-sage/25 font-mono text-xs text-palette-cream overflow-x-auto shadow-inner leading-relaxed">
             <span className="text-palette-sage/50 block mb-1"># Create short URL with 5-day expiration:</span>
-            <span className="text-palette-mint">curl</span> -X POST https://mini-url-api.workers.dev/api/shorten \<br />
+            <span className="text-palette-mint">curl</span> -X POST {API_BASE_URL}/api/shorten \<br />
             &nbsp;&nbsp;-H <span className="text-palette-cream">"Content-Type: application/json"</span> \<br />
             &nbsp;&nbsp;-d <span className="text-palette-emerald">&#39;&#123;&quot;url&quot;: &quot;https://example.com/long-page&quot;, &quot;expiresInDays&quot;: 5&#125;&#39;</span>
           </div>
